@@ -1,0 +1,47 @@
+{
+  "name": "civitai-media-downloader",
+  "description": "Bulk-download images and videos from CivitAI",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "compile": "tsc --noEmit",
+    "postinstall": "wxt prepare"
+  },
+  "dependencies": {
+    "@iconify/react": "^6.0.1",
+    "@radix-ui/react-accordion": "^1.2.12",
+    "@radix-ui/react-checkbox": "^1.3.3",
+    "@radix-ui/react-label": "^2.1.8",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-tooltip": "^1.2.8",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "es-toolkit": "^1.39.10",
+    "filenamify": "^7.0.1",
+    "radix-ui": "^1.4.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-hook-form": "^7.76.1",
+    "tailwind-merge": "^3.3.1",
+    "tw-animate-css": "^1.3.8",
+    "webext-bridge": "^6.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.12",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@wxt-dev/auto-icons": "^1.1.0",
+    "@wxt-dev/module-react": "^1.1.5",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3",
+    "wxt": "^0.20.26"
+  },
+  "packageManager": "pnpm@10.20.0"
+}
