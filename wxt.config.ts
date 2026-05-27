@@ -8,8 +8,9 @@ export default defineConfig({
     name: "CivitAI Media Downloader",
     description: "Bulk-download images and videos from CivitAI",
     permissions: [
-      "webRequest",
-      "webRequestBlocking",
+      ...(browser === "firefox"
+        ? (["webRequest", "webRequestBlocking"] as const)
+        : ([] as const)),
       "downloads",
       "activeTab",
       "storage",
@@ -29,4 +30,10 @@ export default defineConfig({
   vite: () => ({
     plugins: [tailwindcss()],
   }),
+  webExt: {
+    binaries: {
+      chrome:
+        ".wxt/browsers/chrome/win64-149.0.7827.22/chrome-win64/chrome.exe",
+    },
+  },
 });

@@ -23,7 +23,7 @@ export function SidebarFooter() {
         </p>
         <div className="space-y-1 flex flex-col items-center">
           <a
-            href="https://github.com/sebastianwd/civitai-dl"
+            href="https://github.com/sebastianwd/civitai-media-downloader"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs underline text-blue-500 hover:text-blue-600 hover:underline transition-colors"

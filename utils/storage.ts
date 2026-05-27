@@ -1,7 +1,7 @@
 import { storage } from "#imports";
 
 export const folderDestination = storage.defineItem("local:folderDestination", {
-  fallback: "CivitAI Downloads",
+  fallback: "CivitAI Downloads/{creator}",
 });
 
 export const filenamePattern = storage.defineItem("local:filenamePattern", {

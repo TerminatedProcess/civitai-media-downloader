@@ -1,7 +1,7 @@
 import "~/assets/tailwind.css";
 import ReactDOM from "react-dom/client";
 import { onMessage } from "webext-bridge/content-script";
-import { SCROLL_WAIT_MS } from "@/utils/constants";
+import { MSG_INFINITE_ITEMS, SCROLL_WAIT_MS } from "@/utils/constants";
 import { processedImageIds } from "@/utils/storage";
 import {
   findAllCards,
@@ -117,7 +117,7 @@ export default defineContentScript({
     // ── Creator cache — receives postMessage from the injected script ─────────
     window.addEventListener("message", (e) => {
       if (
-        e.data?.type === "__civitai_dl_items__" &&
+        e.data?.type === MSG_INFINITE_ITEMS &&
         Array.isArray(e.data.items)
       ) {
         cacheInfiniteItems(e.data.items);

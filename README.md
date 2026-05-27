@@ -1,7 +1,7 @@
 <div align="center">
   <h1>CivitAI Media Downloader</h1>
   <p>
-    <a href="https://github.com/sebastianwd/civitai-dl" target="_blank">
+    <a href="https://github.com/sebastianwd/civitai-media-downloader" target="_blank">
       <img alt="github" src="https://img.shields.io/badge/Source-GitHub-181717?style=for-the-badge&logo=github&logoColor=white" />
     </a>
   </p>
@@ -46,10 +46,47 @@ Built with [WXT](https://wxt.dev/) and React.
 - Node.js 22+
 - pnpm
 
+### Browser setup
+
+To test with a real CivitAI account you need to reuse an existing browser profile that's already logged in. Cloudflare blocks fresh logins in an automated context. WXT supports this via `chromiumProfile` / `firefoxProfile`.
+
+**Chrome** — stable Chrome 137+ no longer allows loading unpacked extensions, so [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) (CfT) is required. Download it once:
+
+```bash
+npx @puppeteer/browsers install chrome@stable --path .wxt/browsers
+```
+
+```ts
+// wxt.config.ts
+runner: {
+  binaries: {
+    chrome: ".wxt/browsers/chrome/win64-<version>/chrome-win64/chrome.exe",
+  },
+},
+
+// web-ext.config.ts
+chromiumProfile: resolve(".wxt/chrome-data"),
+keepProfileChanges: true,
+chromiumArgs: [
+  "--disable-blink-features=AutomationControlled", // without this, navigator.webdriver=true and Cloudflare blocks login
+  "--exclude-switches=enable-automation",
+],
+```
+
+`.wxt/chrome-data` is created on first run. log into CivitAI once, session persists after that.
+
+**Firefox** — supports multiple profiles simultaneously, so any existing logged-in profile works:
+
+```ts
+// web-ext.config.ts
+firefoxProfile: `${process.env.APPDATA}\\Mozilla\\Firefox\\Profiles\\<profile-dir>`,
+keepProfileChanges: true,
+```
+
 ### Commands
 
-- `pnpm dev` — Development server
-- `pnpm dev:firefox` — Firefox development
+- `pnpm dev` — Chrome dev
+- `pnpm dev:firefox` — Firefox dev
 - `pnpm build` — Production build
 - `pnpm zip` — Create distribution zip
 - `pnpm zip:firefox` — Create distribution zip for Firefox

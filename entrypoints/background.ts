@@ -3,10 +3,7 @@ import type { DownloadRequestMessage } from "@/types";
 import { parseInfiniteResponse } from "@/utils/creator-cache";
 import { buildDownloadPath } from "@/utils/filename-utils";
 import { logger } from "@/utils/logger";
-import {
-  folderDestination,
-  filenamePattern,
-} from "@/utils/storage";
+import { folderDestination, filenamePattern } from "@/utils/storage";
 
 export default defineBackground(() => {
   // ── Icon click: open sidebar ──────────────────────────────────────────────
@@ -64,53 +61,59 @@ export default defineBackground(() => {
     }
   });
 
-  browser.webRequest.onBeforeRequest.addListener(
-    (details) => {
-      const filter = browser.webRequest.filterResponseData(details.requestId);
-      const chunks: Uint8Array[] = [];
+  // filterResponseData is Firefox-only; skip entirely in Chrome MV3
+  if (typeof browser.webRequest?.filterResponseData === "function") {
+    browser.webRequest.onBeforeRequest.addListener(
+      (details) => {
+        const filter = browser.webRequest.filterResponseData(details.requestId);
+        const chunks: Uint8Array[] = [];
 
-      filter.ondata = (event) => {
-        chunks.push(new Uint8Array(event.data));
-        filter.write(event.data);
-      };
+        filter.ondata = (event) => {
+          chunks.push(new Uint8Array(event.data));
+          filter.write(event.data);
+        };
 
-      filter.onstop = () => {
-        try {
-          const totalLength = chunks.reduce((n, c) => n + c.length, 0);
-          const combined = new Uint8Array(totalLength);
-          let offset = 0;
-          for (const chunk of chunks) {
-            combined.set(chunk, offset);
-            offset += chunk.length;
-          }
+        filter.onstop = () => {
+          try {
+            const totalLength = chunks.reduce((n, c) => n + c.length, 0);
+            const combined = new Uint8Array(totalLength);
+            let offset = 0;
+            for (const chunk of chunks) {
+              combined.set(chunk, offset);
+              offset += chunk.length;
+            }
 
-          const items = parseInfiniteResponse(
-            JSON.parse(new TextDecoder().decode(combined)),
-          );
-
-          if (items.length > 0 && details.tabId >= 0) {
-            sendMessage(
-              "CACHE_INFINITE_ITEMS",
-              { items },
-              `content-script@${details.tabId}`,
-            ).catch(() => {});
-            logger.log(
-              `Cached ${items.length} creator entries from getInfinite (tab ${details.tabId})`,
+            const items = parseInfiniteResponse(
+              JSON.parse(new TextDecoder().decode(combined)),
             );
+
+            if (items.length > 0 && details.tabId >= 0) {
+              sendMessage(
+                "CACHE_INFINITE_ITEMS",
+                { items },
+                `content-script@${details.tabId}`,
+              ).catch(() => {});
+              logger.log(
+                `Cached ${items.length} creator entries from getInfinite (tab ${details.tabId})`,
+              );
+            }
+          } catch {
+            // Malformed or non-JSON response — pass through without caching
           }
-        } catch {
-          // Malformed or non-JSON response — pass through without caching
-        }
 
-        filter.close();
-      };
+          filter.close();
+        };
 
-      return {};
-    },
-    {
-      urls: ["https://civitai.red/api/trpc/image.getInfinite*"],
-      types: ["xmlhttprequest"],
-    },
-    ["blocking"],
-  );
+        return {};
+      },
+      {
+        urls: [
+          "https://civitai.red/api/trpc/image.getInfinite*",
+          "https://civitai.com/api/trpc/image.getInfinite*",
+        ],
+        types: ["xmlhttprequest"],
+      },
+      ["blocking"],
+    );
+  }
 });

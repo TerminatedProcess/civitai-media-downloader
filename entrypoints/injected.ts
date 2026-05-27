@@ -20,8 +20,8 @@ export default defineUnlistedScript(() => {
           .json()
           .then((data: unknown) => {
             const items = (data as any)?.result?.data?.json?.items;
-            if (Array.isArray(items)) console.log("items", items);
-            window.postMessage({ type: "__civitai_dl_items__", items }, "*");
+            if (Array.isArray(items))
+              window.postMessage({ type: "__civitai_dl_items__", items }, "*");
           })
           .catch(() => {});
       }
