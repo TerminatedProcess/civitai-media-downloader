@@ -22,8 +22,9 @@ export default defineConfig({
       ? {
           browser_specific_settings: {
             gecko: {
+              // "none" = this extension collects no user data (AMO requirement).
               data_collection_permissions: {
-                required: [],
+                required: ["none"],
                 optional: [],
               },
             },
