@@ -55,12 +55,18 @@ export function findAllCards(): Element[] {
       mediaEl.parentElement;
 
     if (
-      container &&
-      container !== document.body &&
-      container !== document.documentElement
-    ) {
-      cards.add(container);
-    }
+      !container ||
+      container === document.body ||
+      container === document.documentElement
+    )
+      return;
+
+    const hasMediaLink =
+      container.matches(Selectors.DETAIL_LINK) ||
+      !!container.querySelector(Selectors.DETAIL_LINK);
+    if (!hasMediaLink) return;
+
+    cards.add(container);
   };
 
   document.querySelectorAll(Selectors.VIDEO).forEach(addCard);
@@ -191,10 +197,7 @@ export function getOriginalUrlFromDom(card: Element): string | null {
         return attr.value;
       }
     }
-    if (
-      el.tagName === "SCRIPT" &&
-      el.textContent?.includes(CIVITAI_B2_HOST)
-    ) {
+    if (el.tagName === "SCRIPT" && el.textContent?.includes(CIVITAI_B2_HOST)) {
       const match = el.textContent.match(CIVITAI_B2_URL_REGEX);
       if (match) {
         logger.log("Found original URL in script tag:", match[0]);

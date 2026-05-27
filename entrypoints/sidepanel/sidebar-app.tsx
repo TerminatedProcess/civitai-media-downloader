@@ -291,7 +291,7 @@ function SidebarApp() {
   if (!isCivitaiPage) {
     return (
       <div
-        className="w-full min-h-screen p-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center"
+        className="w-full min-h-screen p-4 bg-linear-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center"
         style={{ minWidth: 300 }}
       >
         <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center mb-4">
@@ -319,7 +319,7 @@ function SidebarApp() {
 
   return (
     <div
-      className="w-full min-h-screen p-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col"
+      className="w-full min-h-screen p-4 bg-linear-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col"
       style={{ minWidth: 300 }}
     >
       <div className="text-center mb-6">

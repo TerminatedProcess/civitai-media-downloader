@@ -99,10 +99,28 @@ function highlightCard(card: HTMLElement) {
 }
 
 /**
- * CivitAI's main scroll container.
- * The page uses a custom scroll area div, NOT window — so window.scroll events
- * don't fire when the user scrolls the feed.
+ * Walk up from an element to find its nearest scrollable ancestor.
+ * Falls back to .scroll-area (CivitAI's custom container) then documentElement.
  */
+function getScrollableParent(el: Element): Element {
+  let current = el.parentElement;
+  while (current && current !== document.body) {
+    const { overflow, overflowY } = getComputedStyle(current);
+    if (
+      overflow === "auto" ||
+      overflow === "scroll" ||
+      overflowY === "auto" ||
+      overflowY === "scroll"
+    ) {
+      return current;
+    }
+    current = current.parentElement;
+  }
+  // Fallback: CivitAI's named scroll container, or the root element
+  return document.querySelector(".scroll-area") ?? document.documentElement;
+}
+
+/** For operations that need the feed scroll container without a card anchor. */
 const getScrollContainer = (): Element =>
   document.querySelector(".scroll-area") ?? document.documentElement;
 
@@ -111,15 +129,11 @@ export default defineContentScript({
   cssInjectionMode: "ui",
 
   async main(ctx) {
-    console.log("Hello from content-script.ts");
     await injectScript("/injected.js", { keepInDom: true });
 
     // ── Creator cache — receives postMessage from the injected script ─────────
     window.addEventListener("message", (e) => {
-      if (
-        e.data?.type === MSG_INFINITE_ITEMS &&
-        Array.isArray(e.data.items)
-      ) {
+      if (e.data?.type === MSG_INFINITE_ITEMS && Array.isArray(e.data.items)) {
         cacheInfiniteItems(e.data.items);
         logger.log(
           `Cached ${e.data.items.length} creator entries from getInfinite`,
@@ -265,7 +279,18 @@ export default defineContentScript({
       ) as HTMLElement | null;
 
       if (card) {
-        card.scrollIntoView({ behavior: "auto", block: "center" });
+        // Walk up from the card to find its actual scrollable ancestor —
+        // avoids hardcoding .scroll-area which differs across page layouts.
+        const container = getScrollableParent(card);
+        const cardRect = card.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const scrollTop =
+          container.scrollTop +
+          cardRect.top -
+          containerRect.top -
+          container.clientHeight / 2 +
+          cardRect.height / 2;
+        container.scrollTo({ top: scrollTop, behavior: "smooth" });
         requestAnimationFrame(() => highlightCard(card));
       }
 

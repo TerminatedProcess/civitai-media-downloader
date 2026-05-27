@@ -17,9 +17,9 @@ export default defineConfig({
       "tabs",
     ],
     host_permissions: ["*://*.civitai.com/*", "*://*.civitai.red/*"],
-    // Enable icon click without popup
-    action: {},
-    browser_action: {},
+    homepage_url: "https://github.com/sebastianwd/civitai-media-downloader",
+    action: { default_title: "CivitAI Media Downloader" },
+    browser_action: { default_title: "CivitAI Media Downloader" },
     web_accessible_resources: [
       {
         resources: ["injected.js"],
