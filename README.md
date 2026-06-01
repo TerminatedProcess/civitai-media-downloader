@@ -1,6 +1,12 @@
 <div align="center">
   <h1>CivitAI Media Downloader</h1>
   <p>
+    <a href="https://addons.mozilla.org/en-US/firefox/addon/civitai-media-downloader/" target="_blank">
+      <img alt="mozilla" src="https://img.shields.io/badge/Firefox-FF7139?style=for-the-badge&logo=Firefox-Browser&logoColor=white" />
+    </a>
+    <a href="https://chromewebstore.google.com/detail/kkpcojdadfakbekjhcloohpljjibioia?hl=en" target="_blank">
+      <img alt="chrome-extension" src="https://img.shields.io/badge/Google%20Chrome-4285F4?style=for-the-badge&logo=GoogleChrome&logoColor=white" />
+    </a>
     <a href="https://github.com/sebastianwd/civitai-media-downloader" target="_blank">
       <img alt="github" src="https://img.shields.io/badge/Source-GitHub-181717?style=for-the-badge&logo=github&logoColor=white" />
     </a>
