@@ -1,10 +1,12 @@
 import {
   Selectors,
-  DETAIL_HREF_ID_REGEX,
+  MEDIA_HREF_ID_REGEX,
   CDN_FILENAME_ID_REGEX,
   CIVITAI_CDN_HOST,
   CIVITAI_B2_HOST,
   CIVITAI_B2_URL_REGEX,
+  USER_LINK,
+  USER_HREF_NAME_REGEX,
 } from "./constants";
 import { logger } from "./logger";
 import type { MediaContentType } from "@/types";
@@ -78,23 +80,30 @@ export function findAllCards(): Element[] {
 /**
  * Extract the numeric media ID from a card element.
  * Tries (in order):
- *  1. Detail page link href  — href="/videos/77216553"
+ *  1. Detail page link href  — href="/videos/77216553" or "/images/..."
  *  2. Card's own href
  *  3. <source src> filename  — .../131300973.mp4
  *  4. <img src> filename
+ *
+ * IMPORTANT: only /images/ and /videos/ ids count — never /posts/. A card
+ * (especially a logged-in video card with a creator/post overlay) can contain
+ * a `/posts/{id}` link that appears *before* the media link in the DOM. A post
+ * id is not a valid `image.get` id, so using it makes creator resolution 404
+ * and fall back to "unknown". We scan *all* detail links and take the first
+ * genuine media id, skipping post links entirely.
  */
 export function getMediaIdFromCard(card: Element): string | null {
-  // 1. Detail link
-  const link = card.querySelector(Selectors.DETAIL_LINK);
-  if (link) {
+  // 1. Detail links — scan every match, accept only /images/ or /videos/ ids
+  const links = card.querySelectorAll(Selectors.DETAIL_LINK);
+  for (const link of Array.from(links)) {
     const href = link.getAttribute("href") ?? "";
-    const m = href.match(DETAIL_HREF_ID_REGEX);
+    const m = href.match(MEDIA_HREF_ID_REGEX);
     if (m) return m[2];
   }
 
   // 2. Card itself is an <a>
   const selfHref = card.getAttribute("href") ?? "";
-  const selfMatch = selfHref.match(DETAIL_HREF_ID_REGEX);
+  const selfMatch = selfHref.match(MEDIA_HREF_ID_REGEX);
   if (selfMatch) return selfMatch[2];
 
   // 3. <source src> filename (confirmed from live DOM)
@@ -250,32 +259,67 @@ export function getMediaType(card: Element): MediaContentType {
 }
 
 /**
- * Fetch creator username from the CivitAI tRPC API.
+ * Read the creator username straight from a card's creator-profile link.
  *
- * Calls image.get with the numeric media ID. The response includes a `user`
- * object with the `username` field.
+ * Logged-in feed cards render an overlay with the creator's avatar linked as
+ * `<a href="/user/{username}">`. Reading it here is zero-cost, needs no API
+ * call, and works even when image.get is unavailable or rate-limited.
+ */
+export function getCreatorFromDom(card: Element): string | null {
+  const link = card.querySelector(USER_LINK);
+  const href = link?.getAttribute("href") ?? "";
+  const m = href.match(USER_HREF_NAME_REGEX);
+  if (m) return decodeURIComponent(m[1]);
+  return null;
+}
+
+/**
+ * Resolve the creator username for a card.
+ *
+ * Resolution order (cheapest / most reliable first):
+ *   1. In-memory cache (populated from image.getInfinite feed responses)
+ *   2. The card's own `/user/{username}` overlay link (zero-cost DOM read)
+ *   3. tRPC image.get with the numeric media ID
+ *
+ * `mediaId` MUST be an /images/ or /videos/ id (see getMediaIdFromCard) — a
+ * post id here 404s and yields "unknown".
  *
  * Only call from content-script context (same-origin fetch, no CORS issues).
  */
 export async function resolveCreator(
-  _card: Element,
+  card: Element,
   mediaId: string,
 ): Promise<string> {
   const cached = creatorCache.get(mediaId);
   if (cached) return cached;
+
+  // Zero-cost: the creator is usually linked right on the card.
+  const fromDom = getCreatorFromDom(card);
+  if (fromDom) {
+    creatorCache.set(mediaId, fromDom);
+    return fromDom;
+  }
 
   try {
     const input = encodeURIComponent(
       JSON.stringify({ json: { id: parseInt(mediaId, 10) } }),
     );
     const res = await fetch(`/api/trpc/image.get?input=${input}`);
-    if (!res.ok) return "unknown";
+    if (!res.ok) {
+      logger.warn(
+        `image.get failed for media ${mediaId} (status ${res.status}) — creator unknown`,
+      );
+      return "unknown";
+    }
     const data = await res.json();
     // tRPC/superjson shape: { result: { data: { json: { user: { username } } } } }
     const imageData = data?.result?.data?.json;
     const username =
       imageData?.user?.username ?? imageData?.user?.name ?? imageData?.username;
-    if (username) return String(username);
+    if (username) {
+      creatorCache.set(mediaId, String(username));
+      return String(username);
+    }
   } catch {
     // Network error or API shape change — swallow and fall through
   }
