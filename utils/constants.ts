@@ -39,6 +39,16 @@ export const Selectors = {
 // Extracts the numeric ID from href="/videos/77216553" or "/images/77216553"
 export const DETAIL_HREF_ID_REGEX = /\/(videos|images|posts)\/(\d+)/;
 
+// Extracts a MEDIA id only — /images/ or /videos/, never /posts/.
+// A post groups many media, so a post id is NOT a valid image.get id and must
+// never be used as the per-media identifier (it makes creator lookups 404).
+export const MEDIA_HREF_ID_REGEX = /\/(images|videos)\/(\d+)/;
+
+// Link to a creator's profile on a card overlay, e.g. href="/user/Lady_Luminous".
+// Present on logged-in feed cards — lets us read the creator with zero API calls.
+export const USER_LINK = 'a[href^="/user/"]';
+export const USER_HREF_NAME_REGEX = /\/user\/([^/?#]+)/;
+
 // Extracts the numeric ID from a CivitAI CDN URL filename, e.g.:
 //   .../transcode=true,width=450,optimized=true/131300973.mp4
 //                                               ^^^^^^^^^^^
