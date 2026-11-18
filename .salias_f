@@ -1,0 +1,43 @@
+# CivitAI Media Downloader - Project aliases and functions
+# All commands defined here, sourced by .salias
+# Run 'help' to see all available commands
+
+# ── Help ──
+function help
+    clear
+    command cat ./.salias_help.txt
+end
+
+# ── Setup ──
+alias install='pnpm install'
+
+# Reinstall deps when missing or when package.json / pnpm-lock.yaml changed
+# since the last install (pnpm writes node_modules/.modules.yaml on install)
+function _deps
+    set -l stamp node_modules/.modules.yaml
+    if not test -f $stamp; or test package.json -nt $stamp; or test pnpm-lock.yaml -nt $stamp
+        pnpm install --frozen-lockfile; or return 1
+    end
+end
+
+# ── Develop ──
+# Dev build with hot reload into .output/chrome-mv3-dev (browser auto-launch
+# disabled via local web-ext.config.ts — load the folder unpacked in Brave)
+function run; _deps; and pnpm dev; end
+function runff; _deps; and pnpm dev:firefox; end
+function check; _deps; and pnpm compile; end
+
+# ── Build / Package ──
+function build; _deps; and pnpm build; end
+function buildff; _deps; and pnpm build:firefox; end
+function pack; _deps; and pnpm zip; end
+function packff; _deps; and pnpm zip:firefox; end
+alias clean='rm -rf .output .wxt'
+
+# Print the unpacked build path for brave://extensions → "Load unpacked"
+function deploy
+    build; or return 1
+    echo
+    echo "Load unpacked in brave://extensions:"
+    echo "  "(pwd)/.output/chrome-mv3
+end

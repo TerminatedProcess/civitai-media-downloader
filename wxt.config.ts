@@ -1,6 +1,5 @@
 import { defineConfig } from "wxt";
 import tailwindcss from "@tailwindcss/vite";
-import { CIVITAI_B2_HOST } from "./utils/constants";
 
 export default defineConfig({
   modules: ["@wxt-dev/module-react", "@wxt-dev/auto-icons"],
@@ -46,10 +45,4 @@ export default defineConfig({
   vite: () => ({
     plugins: [tailwindcss()],
   }),
-  webExt: {
-    binaries: {
-      chrome:
-        ".wxt/browsers/chrome/win64-149.0.7827.22/chrome-win64/chrome.exe",
-    },
-  },
 });

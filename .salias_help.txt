@@ -1,0 +1,15 @@
+SETUP
+  install           Install dependencies (pnpm)
+
+DEVELOP
+  run               Dev build + hot reload (Chrome/Brave, .output/chrome-mv3-dev)
+  runff             Dev build + hot reload (Firefox)
+  check             TypeScript type check
+
+BUILD / PACKAGE
+  build             Production build (Chrome/Brave)
+  buildff           Production build (Firefox)
+  deploy            Build and print the folder to load unpacked in Brave
+  pack              Store zip (Chrome Web Store)
+  packff            Store zip (Firefox AMO)
+  clean             Remove .output and .wxt
